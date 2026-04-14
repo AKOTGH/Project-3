@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Gesture Classifier</title>
 
-  <!-- TensorFlow + Teachable Machine -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
 
@@ -48,63 +47,77 @@
     }
   </style>
 </head>
-
 <body>
 
-<h1>Hand Gesture Classifier</h1>
+  <h1>Hand Gesture Classifier</h1>
 
-<button onclick="init()">Start Camera</button>
+  <button id="start-btn">Start Camera</button>
 
-<div id="webcam-container"></div>
-<div id="label-container">Click "Start Camera" to begin</div>
+  <div id="webcam-container"></div>
+  <div id="label-container">Click "Start Camera" to begin</div>
 
-<script>
-  //MODEL URL 
-  const URL = "https://teachablemachine.withgoogle.com/models/W3Ss0XcQR/";
+  <script>
+    const URL = "https://teachablemachine.withgoogle.com/models/W3Ss0XcQR/";
 
-  let model, webcam, labelContainer;
+    let model, webcam, labelContainer, isRunning = false;
 
-  async function init() {
-    const modelURL = URL + "model.json";
-    const metadataURL = URL + "metadata.json";
+    document.getElementById("start-btn").addEventListener("click", init);
 
-    // Load model
-    model = await tmImage.load(modelURL, metadataURL);
+    async function init() {
+      if (isRunning) return;
 
-    // Setup webcam
-    webcam = new tmImage.Webcam(400, 400, true);
-    await webcam.setup();
-    await webcam.play();
+      const webcamContainer = document.getElementById("webcam-container");
+      labelContainer = document.getElementById("label-container");
 
-    window.requestAnimationFrame(loop);
+      try {
+        labelContainer.innerHTML = "Loading model...";
 
-    document.getElementById("webcam-container").appendChild(webcam.canvas);
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
 
-    labelContainer = document.getElementById("label-container");
-  }
+        model = await tmImage.load(modelURL, metadataURL);
 
-  async function loop() {
-    webcam.update();
-    await predict();
-    window.requestAnimationFrame(loop);
-  }
+        labelContainer.innerHTML = "Starting camera...";
 
-  async function predict() {
-    const prediction = await model.predict(webcam.canvas);
+        webcam = new tmImage.Webcam(400, 400, true);
+        await webcam.setup();
+        await webcam.play();
 
-    let highest = prediction[0];
+        webcamContainer.innerHTML = "";
+        webcamContainer.appendChild(webcam.canvas);
 
-    for (let i = 1; i < prediction.length; i++) {
-      if (prediction[i].probability > highest.probability) {
-        highest = prediction[i];
+        isRunning = true;
+        labelContainer.innerHTML = "Camera started. Show a gesture.";
+        window.requestAnimationFrame(loop);
+      } catch (error) {
+        console.error(error);
+        labelContainer.innerHTML =
+          "Camera/model failed to load. Make sure camera permission is allowed and the page is opened through GitHub Pages or a local server.";
       }
     }
 
-    labelContainer.innerHTML =
-      "Prediction: " + highest.className +
-      " (" + (highest.probability * 100).toFixed(1) + "%)";
-  }
-</script>
+    async function loop() {
+      if (!isRunning) return;
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+
+      let highest = prediction[0];
+      for (let i = 1; i < prediction.length; i++) {
+        if (prediction[i].probability > highest.probability) {
+          highest = prediction[i];
+        }
+      }
+
+      labelContainer.innerHTML =
+        "Prediction: " + highest.className +
+        " (" + (highest.probability * 100).toFixed(1) + "%)";
+    }
+  </script>
 
 </body>
 </html>
