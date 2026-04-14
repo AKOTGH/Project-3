@@ -1,3 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gesture Classifier</title>
 
-    <p> wip 
-    </p>
+  <!-- TensorFlow + Teachable Machine -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #webcam-container {
+      margin-top: 20px;
+    }
+
+    #label-container {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #004a99;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      background-color: #004a99;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #003366;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Hand Gesture Classifier</h1>
+
+<button onclick="init()">Start Camera</button>
+
+<div id="webcam-container"></div>
+<div id="label-container">Click "Start Camera" to begin</div>
+
+<script>
+  //MODEL URL 
+  const URL = "https://teachablemachine.withgoogle.com/models/W3Ss0XcQR/";
+
+  let model, webcam, labelContainer;
+
+  async function init() {
+    const modelURL = URL + "model.json";
+    const metadataURL = URL + "metadata.json";
+
+    // Load model
+    model = await tmImage.load(modelURL, metadataURL);
+
+    // Setup webcam
+    webcam = new tmImage.Webcam(400, 400, true);
+    await webcam.setup();
+    await webcam.play();
+
+    window.requestAnimationFrame(loop);
+
+    document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+    labelContainer = document.getElementById("label-container");
+  }
+
+  async function loop() {
+    webcam.update();
+    await predict();
+    window.requestAnimationFrame(loop);
+  }
+
+  async function predict() {
+    const prediction = await model.predict(webcam.canvas);
+
+    let highest = prediction[0];
+
+    for (let i = 1; i < prediction.length; i++) {
+      if (prediction[i].probability > highest.probability) {
+        highest = prediction[i];
+      }
+    }
+
+    labelContainer.innerHTML =
+      "Prediction: " + highest.className +
+      " (" + (highest.probability * 100).toFixed(1) + "%)";
+  }
+</script>
+
+</body>
+</html>
