@@ -74,3 +74,44 @@ nav a {
 nav a:hover {
     text-decoration: underline;
 }
+
+.statement-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.statement-box {
+    background: white;
+    border: 2px solid #004a99; 
+    padding: 40px;
+    border-radius: 12px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+h2 {
+    color: #004a99;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+p {
+    margin-bottom: 20px;
+    text-indent: 0; 
+}
+
+.back-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #004a99;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.back-btn:hover {
+    background-color: #003870;
+}
